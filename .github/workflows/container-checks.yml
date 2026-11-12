@@ -1,0 +1,68 @@
+name: container-checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose
+        working-directory: vulnerable-app
+        run: docker compose config --quiet
+      - name: Check Dockerfile with Hadolint
+        working-directory: vulnerable-app
+        run: docker run --rm -v "${PWD}:/work:ro" -w /work hadolint/hadolint hadolint Dockerfile
+      - name: Check configuration with Trivy
+        working-directory: vulnerable-app
+        run: |
+          mkdir -p reports
+          docker run --rm -v "${PWD}:/src" aquasec/trivy:latest config --exit-code 0 --severity HIGH,CRITICAL --format table --output /src/reports/trivy-config.txt /src
+      - name: Build, scan and health-check container
+        working-directory: vulnerable-app
+        run: ./scripts/check_container.sh
+      - name: Upload container reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-reports
+          path: vulnerable-app/reports/
+          if-no-files-found: ignore
+
+  publish:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/secure-dev-lab-app
+          tags: |
+            type=raw,value=latest
+            type=sha
+      - name: Push image to GHCR
+        uses: docker/build-push-action@v6
+        with:
+          context: vulnerable-app
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

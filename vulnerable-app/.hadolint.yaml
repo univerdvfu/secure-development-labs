@@ -1,0 +1,3 @@
+ignored:
+  - DL3002
+failure-threshold: error

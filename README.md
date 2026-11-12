@@ -92,6 +92,36 @@ docker compose up --build
 
 Открытый порт БД и простые пароли намеренно оставлены для анализа конфигурации.
 
+## Проверка Dockerfile, Compose и контейнера
+
+Из каталога `vulnerable-app` запустите:
+
+```bash
+./scripts/check_container.sh
+```
+
+Скрипт выполняет шесть проверок:
+
+1. `docker compose config` и сохранение итоговой конфигурации;
+2. Hadolint для Dockerfile;
+3. Trivy config для Dockerfile и Compose;
+4. сборку образа;
+5. Trivy image для собранного образа;
+6. запуск Compose, ожидание healthy и HTTP-проверки `/health`, `/login`, `/comments`.
+
+Отчёты сохраняются в `vulnerable-app/reports`. Учебные находки Hadolint/Trivy не блокируют baseline: root в Dockerfile намеренно оставлен для ЛР4. Workflow `.github/workflows/container-checks.yml` повторяет проверки в GitHub Actions и публикует отчёты как artifacts.
+
+## Образ в GitHub Container Registry
+
+Образ: `ghcr.io/univerdvfu/secure-dev-lab-app:latest`.
+
+```bash
+docker pull ghcr.io/univerdvfu/secure-dev-lab-app:latest
+docker run --rm -p 5000:5000 ghcr.io/univerdvfu/secure-dev-lab-app:latest
+```
+
+Если пакет имеет ограниченный доступ, сначала выполните `docker login ghcr.io`. Образ содержит намеренно уязвимое приложение только для локальных лабораторных. Не используйте его в production и не открывайте порт внешним пользователям.
+
 ## Команды сканеров через Docker
 
 Выполняйте из `vulnerable-app`:
