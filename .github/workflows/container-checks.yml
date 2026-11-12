@@ -26,7 +26,7 @@ jobs:
           docker run --rm -v "${PWD}:/src" aquasec/trivy:latest config --exit-code 0 --severity HIGH,CRITICAL --format table --output /src/reports/trivy-config.txt /src
       - name: Build, scan and health-check container
         working-directory: vulnerable-app
-        run: ./scripts/check_container.sh
+        run: bash ./scripts/check_container.sh
       - name: Upload container reports
         if: always()
         uses: actions/upload-artifact@v4
