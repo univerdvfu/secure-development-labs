@@ -1,0 +1,11 @@
+.docs-venv/
+.lab-venv/
+.precommit-check/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+vulnerable-app/data/
+vulnerable-app/reports/
+methodical/*.pdf
+generate_guides.py
+*.pyc

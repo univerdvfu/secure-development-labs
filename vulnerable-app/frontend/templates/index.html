@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">НАМЕРЕННО УЯЗВИМОЕ ПРИЛОЖЕНИЕ</p>
+  <h1>Учебный портал студента</h1>
+  <p>Flask backend · HTML/CSS/JS frontend · SQLite / PostgreSQL</p>
+</section>
+<section class="grid">
+  {% for post in posts %}
+  <article class="card">
+    <span class="tag">Материал {{ post[0] }}</span>
+    <h2>{{ post[1] }}</h2>
+    <p>{{ post[2] }}</p>
+  </article>
+  {% endfor %}
+</section>
+<section class="warning">
+  <h2>Зоны для исследования</h2>
+  <p>Вход, поиск, комментарии и профили содержат дефекты безопасности. Сканеры показывают только часть проблем — остальное нужно найти анализом логики.</p>
+</section>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Вход — Secure Dev Lab{% endblock %}
+{% block content %}
+<form class="panel" method="post">
+  <h1>Вход</h1>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <label>Логин<input name="username" autocomplete="username" required></label>
+  <label>Пароль<input name="password" type="password" autocomplete="current-password" required></label>
+  <button type="submit">Войти</button>
+  <p class="hint">Учебные записи: admin / admin123, student / student123</p>
+</form>
+{% endblock %}

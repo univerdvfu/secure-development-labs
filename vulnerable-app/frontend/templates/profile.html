@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Профиль — Secure Dev Lab{% endblock %}
+{% block content %}
+<h1>Профиль пользователя</h1>
+{% if user %}
+<section class="panel">
+  <p><strong>ID:</strong> {{ user[0] }}</p>
+  <p><strong>Логин:</strong> {{ user[1] }}</p>
+  <p><strong>Email:</strong> {{ user[2] }}</p>
+  <p><strong>Роль:</strong> {{ user[3] }}</p>
+  <p><strong>Закрытая заметка:</strong> <span class="error">{{ user[4] }}</span></p>
+</section>
+{% else %}
+<p>Пользователь не найден.</p>
+{% endif %}
+<p class="hint">Попробуйте изменить параметр id в адресной строке и проверить контроль доступа.</p>
+{% endblock %}
