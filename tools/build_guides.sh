@@ -9,7 +9,7 @@ build() {
   echo "methodical/$2.docx"
 }
 
-build lab1-secure-sdlc.md            "ЛР1_Безопасный_SDLC_и_модель_угроз"
+build lab1-secure-sdlc.md            "ЛР1_Знакомство_с_целью"
 build lab2-sast-semgrep.md           "ЛР2_SAST_Semgrep"
 build lab3-secrets-gitleaks.md       "ЛР3_Gitleaks_и_pre-commit"
 build lab4-sca-trivy-containers.md   "ЛР4_SCA_Trivy_SBOM_и_контейнер"

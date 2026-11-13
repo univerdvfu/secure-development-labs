@@ -1,0 +1,122 @@
+name: security-pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - name: Run tests
+        run: pytest -q
+
+  secrets:
+    name: Secrets (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Gitleaks
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.24.2/gitleaks_8.24.2_linux_x64.tar.gz \
+            | sudo tar -xz -C /usr/local/bin gitleaks
+      - name: Scan Git history
+        run: |
+          mkdir -p reports
+          gitleaks git --redact --no-banner --report-format json --report-path reports/gitleaks.json .
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: reports/
+
+  sast:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install Semgrep
+        run: python -m pip install -r requirements-dev.txt
+      - name: Run Semgrep
+        run: |
+          mkdir -p reports
+          semgrep scan --config .semgrep.yml --metrics=off --error --json-output reports/semgrep.json .
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-report
+          path: reports/
+
+  sca:
+    name: SCA and SBOM (Trivy)
+    runs-on: ubuntu-latest
+    env:
+      TRIVY_IMAGE: aquasec/trivy:0.76.2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan dependencies
+        run: |
+          mkdir -p reports && chmod 777 reports
+          docker run --rm -v "$PWD:/src" "$TRIVY_IMAGE" fs --scanners vuln \
+            --severity HIGH,CRITICAL --exit-code 1 /src
+      - name: Check Dockerfile
+        run: docker run --rm -v "$PWD:/src" "$TRIVY_IMAGE" config --exit-code 1 /src
+      - name: Generate SBOM
+        run: |
+          docker run --rm -v "$PWD:/src" "$TRIVY_IMAGE" fs --format cyclonedx \
+            --output /src/reports/sbom.cdx.json /src
+      - name: Upload SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: reports/
+
+  dast:
+    name: Container and DAST (ZAP)
+    runs-on: ubuntu-latest
+    needs: [tests, secrets, sast, sca]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start application
+        run: docker compose up -d --build --wait
+      - name: Smoke test
+        run: curl --fail --silent http://127.0.0.1:5000/health
+      - name: ZAP baseline scan
+        run: |
+          mkdir -p reports
+          cp zap-rules.tsv reports/
+          chmod -R 777 reports
+          docker run --rm --network host -v "$PWD/reports:/zap/wrk/:rw" \
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t http://127.0.0.1:5000 -c zap-rules.tsv -r zap-report.html -I
+      - name: Stop application
+        if: always()
+        run: docker compose down -v
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: reports/
