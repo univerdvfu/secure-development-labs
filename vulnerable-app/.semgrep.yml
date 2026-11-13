@@ -22,7 +22,7 @@ rules:
     languages: [generic]
     severity: ERROR
     message: Строка похожа на токен GitHub; храните секреты вне кода.
-    pattern-regex: ghp_[0-9A-Za-z]{36}
+    pattern-regex: ghp_[0-9A-Za-z]{30,}
   - id: lab.template-safe-filter
     languages: [generic]
     severity: WARNING

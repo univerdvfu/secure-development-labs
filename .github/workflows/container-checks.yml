@@ -23,7 +23,7 @@ jobs:
         working-directory: vulnerable-app
         run: |
           mkdir -p reports
-          docker run --rm -v "${PWD}:/src" aquasec/trivy:latest config --exit-code 0 --severity HIGH,CRITICAL --format table --output /src/reports/trivy-config.txt /src
+          docker run --rm -v "${PWD}:/src" aquasec/trivy:0.76.2 config --exit-code 0 --severity HIGH,CRITICAL --format table --output /src/reports/trivy-config.txt /src
       - name: Build, scan and health-check container
         working-directory: vulnerable-app
         run: bash ./scripts/check_container.sh
