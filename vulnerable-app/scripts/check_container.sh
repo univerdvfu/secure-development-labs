@@ -15,14 +15,14 @@ printf '\n[2/6] Hadolint\n'
 docker run --rm -v "${PWD}:/work:ro" -w /work hadolint/hadolint hadolint Dockerfile | tee reports/hadolint.txt
 
 printf '\n[3/6] Trivy config\n'
-docker run --rm -v "${PWD}:/src" -v secure-dev-labs-trivy-cache:/root/.cache/trivy aquasec/trivy:latest config --exit-code 0 --severity HIGH,CRITICAL --format table --output /src/reports/trivy-config.txt /src
+docker run --rm -v "${PWD}:/src" -v secure-dev-labs-trivy-cache:/root/.cache/trivy aquasec/trivy:0.76.2 config --exit-code 0 --severity HIGH,CRITICAL --format table --output /src/reports/trivy-config.txt /src
 cat reports/trivy-config.txt
 
 printf '\n[4/6] Image build\n'
 docker build -t "$IMAGE" .
 
 printf '\n[5/6] Trivy image\n'
-docker run --rm -v "${PWD}:/src" -v secure-dev-labs-trivy-cache:/root/.cache/trivy -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --exit-code 0 --severity HIGH,CRITICAL --format table --output "/src/reports/trivy-image.txt" "$IMAGE"
+docker run --rm -v "${PWD}:/src" -v secure-dev-labs-trivy-cache:/root/.cache/trivy -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.76.2 image --exit-code 0 --severity HIGH,CRITICAL --format table --output "/src/reports/trivy-image.txt" "$IMAGE"
 
 printf '\n[6/6] Compose health checks\n'
 cleanup() {

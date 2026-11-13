@@ -1,0 +1,6 @@
+10038	FAIL	(Content-Security-Policy)
+10020	FAIL	(Anti-clickjacking)
+10021	FAIL	(X-Content-Type-Options)
+10202	WARN	(Anti-CSRF: backlog)
+10049	IGNORE	(informational)
+10111	IGNORE	(informational)

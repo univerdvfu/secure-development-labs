@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Поиск — Secure Dev Lab{% endblock %}
+{% block content %}
+<h1>Поиск материалов</h1>
+<form class="search" method="get">
+  <input name="q" value="{{ query }}" placeholder="Введите запрос">
+  <button type="submit">Найти</button>
+</form>
+<p>Запрос: <span class="user-data">{{ query }}</span></p>
+<section class="grid">
+  {% for post in posts %}
+  <article class="card"><h2>{{ post[1] }}</h2><p>{{ post[2] }}</p></article>
+  {% endfor %}
+</section>
+{% endblock %}

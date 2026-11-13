@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Комментарии — Secure Dev Lab{% endblock %}
+{% block content %}
+<h1>Комментарии</h1>
+<form class="panel" method="post">
+  <label>Имя<input name="author" value="student" required></label>
+  <label>Комментарий<textarea name="content" rows="4" required></textarea></label>
+  <button type="submit">Опубликовать</button>
+</form>
+<section>
+  {% for comment in comments %}
+  <article class="comment">
+    <strong>{{ comment[1] }}</strong>
+    <div class="user-data">{{ comment[2] }}</div>
+  </article>
+  {% else %}
+  <p>Комментариев пока нет.</p>
+  {% endfor %}
+</section>
+{% endblock %}
